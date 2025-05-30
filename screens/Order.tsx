@@ -23,57 +23,37 @@ const Order = () => {
 
   const handleGenerateSeeding = async () => {
     // Guard 1: If generation was stopped externally or by a previous iteration.
-    if (!isGenerating) {
-      console.log("HS: Aborting, isGenerating is false.");
-      return;
-    }
-
-    // Guard 2: If we've already reached/passed the target number of loops.
-    if (loopedCount >= loopNumber) {
-      console.log(
-        `HS: Aborting, loopedCount (${loopedCount}) >= loopNumber (${loopNumber}).`
-      );
-      setIsGenerating(false); // Ensure generation is marked as stopped.
-      setLoopedCount(0); // Reset for the next user-initiated generation.
-      return;
-    }
+    if (!isGenerating) return;
 
     try {
       const res = await OrderService.generateSeeding();
       const { EC } = res;
       console.log("check order what heerere", res);
-      if (EC === 0) {
-        // Successfully generated one item.
-        const newLoopedCount = loopedCount + 1;
-        setLoopedCount(newLoopedCount);
 
-        // Check if this was the last one needed.
-        if (newLoopedCount >= loopNumber) {
-          console.log(
-            `HS: Target ${loopNumber} reached or exceeded with ${newLoopedCount}. Stopping.`
-          );
-          setIsGenerating(false);
-          setLoopedCount(0); // Reset for next time.
-        } else {
-          // Not done yet, schedule the next one.
-          console.log(
-            `HS: Generated ${newLoopedCount}/${loopNumber}. Scheduling next.`
-          );
-          setTimeout(() => {
-            handleGenerateSeeding(); // Recursive call.
-          }, 60000); // 60-second delay.
-        }
+      if (EC === 0) {
+        setLoopedCount((prev) => {
+          const newCount = prev + 1;
+
+          // Check if this was the last one needed
+          if (newCount >= loopNumber) {
+            setIsGenerating(false);
+            return 0; // Reset counter
+          } else {
+            // Schedule next call with updated count value
+            setTimeout(() => {
+              handleGenerateSeeding();
+            }, 60000);
+            return newCount;
+          }
+        });
       } else {
-        // API call reported an error (EC !== 0).
-        console.error(`HS: API error EC: ${EC}. Stopping.`);
         setIsGenerating(false);
-        setLoopedCount(0); // Reset.
+        setLoopedCount(0);
       }
     } catch (error) {
-      // Network or other exception during API call.
       console.error("HS: Exception during seeding:", error);
       setIsGenerating(false);
-      setLoopedCount(0); // Reset.
+      setLoopedCount(0);
     }
   };
 

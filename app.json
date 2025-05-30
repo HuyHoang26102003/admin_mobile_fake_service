@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FF_Customer",
-    "slug": "FF_Customer",
+    "name": "FF_FakeSimulator",
+    "slug": "FF_FakeSimulator",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "myapp",

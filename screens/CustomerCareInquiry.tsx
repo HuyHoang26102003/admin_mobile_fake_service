@@ -22,29 +22,33 @@ const CustomerCareInquiry = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerateSeeding = async () => {
+    if (!isGenerating) return;
+
     try {
       const res = await CustomerCareInquiryService.generateSeeding();
       const { EC } = res;
-      if (EC === 0) {
-        const newCount = loopedCount + 1;
-        setLoopedCount(newCount);
+      console.log("The following is the inquiry:", res);
 
-        if (newCount >= loopNumber) {
-          setIsGenerating(false);
-          setLoopedCount(0);
-        } else {
-          // Schedule next inquiry after 60s if we haven't reached the limit
-          setTimeout(() => {
-            handleGenerateSeeding();
-          }, 60000);
-        }
+      if (EC === 0) {
+        setLoopedCount((prev) => {
+          const newCount = prev + 1;
+
+          if (newCount >= loopNumber) {
+            setIsGenerating(false);
+            return 0;
+          } else {
+            setTimeout(() => {
+              handleGenerateSeeding();
+            }, 60000);
+            return newCount;
+          }
+        });
       } else {
-        // If there's an error code
         setIsGenerating(false);
         setLoopedCount(0);
       }
     } catch (error) {
-      console.error("Error generating seeding:", error);
+      console.error("HS: Exception during seeding:", error);
       setIsGenerating(false);
       setLoopedCount(0);
     }
